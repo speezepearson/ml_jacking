@@ -27,7 +27,7 @@ from torch.utils.data import TensorDataset, DataLoader
 train_ds = TensorDataset(inputs, targets)
 
 # Define data loader
-batch_size = 5
+batch_size = 1
 train_dl = DataLoader(train_ds, batch_size, shuffle=True)
 #print(next(iter(train_dl)))
 
@@ -38,15 +38,42 @@ print(model.weight)
 print(model.bias)
 
 # Define optimizer
-opt = torch.optim.SGD(model.parameters(), lr=1e-5)
+opt = torch.optim.SGD(model.parameters(), lr=1e-3)
 
 # Define loss function
 loss_fn = F.mse_loss
 
-print(model(inputs))
+# reshape stuff
+inputs = torch.reshape(inputs, (10,1)) #why do we need to do this?
+targets = torch.reshape(targets, (10,1)) 
 
 """
 loss = loss_fn(model(inputs), targets)
 print("\nLoss is:")
 print(loss)
 """
+
+# Define a utility function to train the model
+def fit(num_epochs, model, loss_fn, opt):
+    for epoch in range(num_epochs):
+        for xb,yb in train_dl:
+            # Generate predictions
+            pred = model(xb)
+            loss = loss_fn(pred, yb)
+            # Perform gradient descent
+            loss.backward()
+            opt.step()
+            opt.zero_grad()
+    print('Training loss: ', loss_fn(model(inputs), targets))
+    print("weight and bias")
+    print(model.weight)
+    print(model.bias)
+
+# Train the model 
+fit(1000, model, loss_fn, opt)
+
+# Generate predictions
+preds = model(inputs)
+print("predictions:")
+print(preds)
+
